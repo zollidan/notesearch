@@ -31,7 +31,52 @@ int main() {
     if(get_player_data() == -1) // пытаемся читать данные игрока из файла
         register_new_player(); // если данных нет запуск регистрации
 
-    
+
+    while(choice != 7) {
+        printf("-=[ Меню игр ]=-\n");
+        printf("1 - Игра Угадай число\n");
+        printf("2 - Игра Без совпадений\n");
+        printf("3 - Игра Найди туза\n");
+        printf("4 - Текущий рекорд\n");
+        printf("5 - Сменить пользователя\n");
+        printf("6 - Вернуть учетную запись к 100 кредитам\n");
+        printf("7 - Выход\n");
+
+        printf("[Имя: %s]\n", player.name);
+        printf("[У вас %u кредитов] -> ", player.credits);
+
+        scanf("%d", &choice);
+
+        if((choice < 1) || (choice > 7)) {
+            printf("\n[!!] Число %d недопустимо.\n\n", choice);
+        } else if(choice < 4) {
+            if(choice != last_game) {
+                if(choice == 1) {
+                    player.current_game = pick_a_number;
+                }
+                else if(choice == 2) {
+                    player.current_game = dealer_no_match;
+                } 
+                else {
+                    player.current_game = find_the_ace;
+                }
+
+                last_game = choice;
+            }
+            play_the_game();
+        } else if(choice == 4) {
+            show_highscore();
+        } else if(choice == 5){
+            printf("\nДругой пользователь\n");
+            printf("Укажите новое имя: ");
+            input_name();
+        } else if(choice == 6){
+            printf("\nВаше счет возвращен к 100 кредитам. \n\n");
+            player.credits = 100;
+        }
+    }
+    update_player_data();
+    printf("Спасибо за игру! Пока.\n");
 }
 
 int get_player_data() {
@@ -77,6 +122,12 @@ void register_new_player() {
     printf("Вам выдано %u кредитов.\n", player.credits);
 }
 
+void update_player_data();
+
+void show_highscore();
+
+void jackpot();
+
 void input_name(){
     char *name_ptr, input_char='\n';
     while(input_char == '\n')
@@ -90,3 +141,16 @@ void input_name(){
     }
     *name_ptr = 0;
 }
+
+void print_cards();
+
+int take_wager(int, int);
+
+void play_the_game();
+
+void pick_a_number();
+
+void dealer_no_match();
+
+void find_the_ace();
+
