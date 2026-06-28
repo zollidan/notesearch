@@ -1,9 +1,23 @@
-void fatal(char *message){
-    char error_message [100]; 
-    strcpy(error_message, "[!!]Критическая ошибка");
-    strncat(error_message, message, 83);
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+
+void fatal(const char *fmt, ...) {
+    char error_message[256];
+    va_list args;
+
+    strcpy(error_message, "[!!] Критическая ошибка: ");
+
+    va_start(args, fmt);
+    vsnprintf(error_message + strlen(error_message),
+              sizeof(error_message) - strlen(error_message),
+              fmt,
+              args);
+    va_end(args);
+
     perror(error_message);
-    exit(-1);
+    exit(EXIT_FAILURE);
 }
 void *ec_malloc(unsigned int size) {
     void *ptr;

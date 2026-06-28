@@ -11,7 +11,6 @@
 int print_notes(int, int, char *); // вывод заметов в консоль
 int find_user_note(int, int); // поиск в файле заметок пользователя
 int search_note(char *, char *); // поиск по ключевым словам
-void fatal(char *); // обработка критических ошибок
 
 int main(int argc, char const *argv[])
 {
@@ -28,7 +27,7 @@ int main(int argc, char const *argv[])
 
     fd = open(FILENAME, O_RDONLY);
     if(fd == -1)
-        fatal("в функции main ошибка открытия дескриптора");
+        fatal("в функции %s ошибка открытия дескриптора", __func__);
 
     while(printing)
         printing = print_notes(fd, userId, searchstring);

@@ -9,17 +9,24 @@
 
 #define DATAFILE "var/chance.data" // файл данных пользователя
 
+// 120 bytes user
 struct user {
-    int uid;
-    int credits;
-    int highscore;
-    char name[100];
-    int (*current_game) ();
+    int uid;                 // 4 bytes
+    int credits;             // 4 bytes
+    int highscore;           // 4 bytes
+    char name[100];          // 100 bytes
+    int (*current_game)();   // 8 bytes
 };
 
 int get_player_data();
 void register_new_player();
 void input_name();
+int take_wager(int, int);
+void play_the_game();
+void pick_a_number();
+void dealer_no_match();
+void find_the_ace();
+
 
 struct user player;
 
@@ -122,11 +129,60 @@ void register_new_player() {
     printf("Вам выдано %u кредитов.\n", player.credits);
 }
 
-void update_player_data();
+void update_player_data() {
+    int fd, i, read_uid;
+    char burned_byte;
 
-void show_highscore();
+    fd = open(DATAFILE, O_RDWR);
+    if(fd == -1) {
+        fatal("ошибка при открытии fd в %s", __FUNCTION__);
+    }
+    read(fd, &read_uid, 4); // читаю uid из первой строки
+    while(read_uid != player.uid) { // читаю пока не найду нужный id
+        for (i = 0; i < sizeof(struct user) - 4; i++)
+        {
+            read(fd, &burned_byte, 1);
+        }
 
-void jackpot();
+        read(fd, &read_uid, 4);
+    }
+    write(fd, &(player.credits), 4);
+    write(fd, &(player.highscore), 4);
+    write(fd, &(player.name), 100);
+    close(fd);
+}
+
+// отображение рекордов и имени установившего его человека
+void show_highscore() {
+    unsigned int top_score = 0;
+    char top_name[100];
+    struct user entry;
+    int fd;
+
+    printf("\n=================| РЕКОРДЫ |=================\n");
+    fd = open(DATAFILE, O_RDONLY);
+    if(fd == -1){
+        fatal("ошибка при открытии fd в %s", __FUNCTION__);
+    }
+    while(read(fd, &entry, sizeof(struct user)) > 0) {
+        if(entry.highscore > top_score) { // если есть результат лучше  
+            top_score = entry.highscore; // то берем его в top_score
+            strcpy(top_name, entry.name); 
+        }
+    }
+    close(fd);
+    if(top_score > player.highscore)
+        printf("%s установил рекорд %u\n", top_name, top_score);
+    else
+        printf("Сейчас у вас рекорд %u кредитов!\n", player.highscore);
+    printf("============================================================");
+}
+
+void jackpot() {
+    printf("+=+=+=++=+=+=++=+=+=+ ДЖЕКПОТ +=+=+=++=+=+=++=+=+=+");
+    printf("Вы выиграли джекпот 100 кредитов!");
+    player.credits += 100;
+}
 
 void input_name(){
     char *name_ptr, input_char='\n';
@@ -142,15 +198,18 @@ void input_name(){
     *name_ptr = 0;
 }
 
-void print_cards();
+void print_cards(char *messages, char *cards, int user_pick) {
+    int i;
 
-int take_wager(int, int);
+    printf("\n\t*** %s ***\n", messages);
+    printf("    \t._.\t._.\t._.\n");
 
-void play_the_game();
-
-void pick_a_number();
-
-void dealer_no_match();
-
-void find_the_ace();
-
+    
+    if(user_pick == -1) {
+        print(" 1 \t 2\t 3\t\n");
+    }else {
+        for (i = 0; i < user_pick; i++)
+            printf("\t");        
+        printf(" вы выбрали\n");
+    }
+}
